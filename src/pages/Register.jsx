@@ -1,6 +1,7 @@
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import axiosInstance from "../../services/axiosInstance";
 
 function Register() {
   const navigate = useNavigate();
@@ -16,17 +17,22 @@ function Register() {
   const [success, setSuccess] = useState("");
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value,});
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
-  const handleRegister = async (e) => { e.preventDefault();
+  const handleRegister = async (e) => {
+    e.preventDefault();
 
     setError("");
     setSuccess("");
 
     const { name, email, password, confirmPassword } = formData;
 
-    if (!name || !email || !password || !confirmPassword) {
+    // Validation
+    if (!name.trim() || !email.trim() || !password || !confirmPassword) {
       setError("Please fill all fields");
       return;
     }
@@ -37,7 +43,7 @@ function Register() {
     }
 
     if (password.length < 5) {
-      setError("Password must contain at least 5  characters");
+      setError("Password must contain at least 5 characters");
       return;
     }
 
@@ -47,12 +53,12 @@ function Register() {
     }
 
     try {
-      const response = await axios.get(
-        "http://localhost:3000/users"
-      );
+      // Get users from LIVE Render backend
+      const response = await axiosInstance.get("/users");
 
       const existingUser = response.data.find(
-        (user) => user.email === email
+        (user) =>
+          user.email.toLowerCase() === email.trim().toLowerCase()
       );
 
       if (existingUser) {
@@ -60,14 +66,12 @@ function Register() {
         return;
       }
 
-      await axios.post(
-        "http://localhost:3000/users",
-        {
-          name,
-          email,
-          password,
-        }
-      );
+      // Add new user to LIVE Render backend
+      await axiosInstance.post("/users", {
+        name: name.trim(),
+        email: email.trim(),
+        password,
+      });
 
       setSuccess("Registration successful!");
 
@@ -83,6 +87,12 @@ function Register() {
       }, 1000);
     } catch (error) {
       console.log("REGISTER ERROR:", error);
+
+      if (error.response) {
+        console.log("SERVER RESPONSE:", error.response.data);
+        console.log("STATUS:", error.response.status);
+      }
+
       setError("Something went wrong. Please try again.");
     }
   };
@@ -151,9 +161,7 @@ function Register() {
         />
 
         <div className="row g-0">
-
-          {/* ================= LEFT SIDE ================= */}
-
+          {/* LEFT SIDE */}
           <div
             className="col-lg-7 d-flex align-items-center"
             style={{
@@ -165,7 +173,6 @@ function Register() {
               overflow: "hidden",
             }}
           >
-
             {/* Decorative Circle */}
             <div
               style={{
@@ -197,26 +204,25 @@ function Register() {
                 zIndex: 2,
                 maxWidth: "570px",
               }}
-            >            
-                <div>
-                  <div
-                    style={{
-                      color: "#39ff88",
-                      fontSize: "20px",
-                      fontWeight: "700",
-                    }}
-                  >
-                    Daily Mood Tracker
-                  </div>
+            >
+              <div>
+                <div
+                  style={{
+                    color: "#39ff88",
+                    fontSize: "20px",
+                    fontWeight: "700",
+                  }}
+                >
+                  Daily Mood Tracker
+                </div>
 
-                  <small
-                    style={{
-                      color: "#718078",
-                    }}
-                  >
-                    Your daily wellness companion
-                  </small>
-                
+                <small
+                  style={{
+                    color: "#718078",
+                  }}
+                >
+                  Your daily wellness companion
+                </small>
               </div>
 
               {/* Heading */}
@@ -253,10 +259,7 @@ function Register() {
 
               {/* Features */}
               <div className="mt-4">
-
-                <div
-                  className="d-flex align-items-center mb-3"
-                >
+                <div className="d-flex align-items-center mb-3">
                   <span
                     style={{
                       color: "#39ff88",
@@ -277,9 +280,7 @@ function Register() {
                   </span>
                 </div>
 
-                <div
-                  className="d-flex align-items-center mb-3"
-                >
+                <div className="d-flex align-items-center mb-3">
                   <span
                     style={{
                       color: "#39ff88",
@@ -300,9 +301,7 @@ function Register() {
                   </span>
                 </div>
 
-                <div
-                  className="d-flex align-items-center"
-                >
+                <div className="d-flex align-items-center">
                   <span
                     style={{
                       color: "#39ff88",
@@ -322,7 +321,6 @@ function Register() {
                     Build awareness of your daily experiences
                   </span>
                 </div>
-
               </div>
 
               {/* Bottom Text */}
@@ -342,12 +340,10 @@ function Register() {
                   YOUR MOOD • YOUR JOURNEY • YOUR STORY
                 </small>
               </div>
-
             </div>
           </div>
 
-          {/* ================= RIGHT SIDE ================= */}
-
+          {/* RIGHT SIDE */}
           <div
             className="col-lg-5 d-flex align-items-center"
             style={{
@@ -356,7 +352,6 @@ function Register() {
               padding: "45px",
             }}
           >
-
             <div
               style={{
                 width: "100%",
@@ -364,10 +359,8 @@ function Register() {
                 margin: "0 auto",
               }}
             >
-
               {/* Heading */}
               <div className="mb-4">
-
                 <h2
                   className="fw-bold mb-2"
                   style={{
@@ -387,7 +380,6 @@ function Register() {
                 >
                   Join Daily Mood Tracker and start your journey.
                 </p>
-
               </div>
 
               {/* Error */}
@@ -426,7 +418,6 @@ function Register() {
 
               {/* Form */}
               <form onSubmit={handleRegister}>
-
                 {/* Name */}
                 <div className="mb-3">
                   <label
@@ -566,12 +557,10 @@ function Register() {
                 >
                   Create Account
                 </button>
-
               </form>
 
               {/* Login */}
               <div className="text-center mt-4">
-
                 <span
                   style={{
                     color: "#89968e",
@@ -591,12 +580,9 @@ function Register() {
                 >
                   Login
                 </Link>
-
               </div>
-
             </div>
           </div>
-
         </div>
       </div>
     </div>
@@ -604,6 +590,4 @@ function Register() {
 }
 
 export default Register;
-
-
 
